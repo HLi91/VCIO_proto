@@ -2,7 +2,7 @@
 #define ISLAB_H_
 #include <iostream>
 
-#define BLOCKSIZE (256*1024)
+#define BLOCKSIZE (1024*256)
 
 class BlockInfo_t {
 public:

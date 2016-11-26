@@ -106,7 +106,7 @@ int InodeManager::Read(int inode_id, size_t offset, size_t size, void * ptr) {
 	int relative_off = offset % BLOCKSIZE;
 	int size_to_read = size;
 	void * ptr_to_read = ptr;
-	while (size != 0) {
+	while (size_to_read != 0) {
 		int ret = ReadBlock_impl(inode_id, block_id, ptr_to_read, relative_off, size_to_read);
 		if (ret == -1) {
 			Unlock(inode_id);
@@ -128,9 +128,9 @@ int InodeManager::Write(int inode_id, size_t offset, size_t size, const void * p
 	const void * ptr_to_write = ptr;
 	int request_blocks = size / BLOCKSIZE;
 	AppendBlock(inode_id, inode_[inode_id].block_count_, request_blocks);
-	while (size != 0) {
+	while (size_to_write != 0) {
 		int ret = WriteBlock_impl(inode_id, block_id, ptr_to_write, relative_off, size_to_write);
-		if (ret = -1) {
+		if (ret == -1) {
 			Unlock(inode_id);
 			return size - size_to_write;
 		}
@@ -154,10 +154,10 @@ int InodeManager::ReadBlock_impl(int inode_id, int block_id, void* ptr, int rela
 		DataBlock* src = reg_slab_manager_->GetBlock(inode_[inode_id].direct[block_id]);
 		//size = size < src->last_bit ? size : src->last_bit;			//todo: not right
 		if (size + relative_off > src->last_bit) {
-			cout << "size" << size << endl;
-			cout << relative_off << endl << src->last_bit << endl;
+			//cout << "size" << size << endl;
+			//cout << relative_off << endl << src->last_bit << endl;
 			size = src->last_bit - relative_off;
-			cout << size << endl;
+			//cout << size << endl;
 			
 		}
 		memcpy(ptr, src->data + relative_off, size);
@@ -170,11 +170,11 @@ int InodeManager::ReadBlock_impl(int inode_id, int block_id, void* ptr, int rela
 		BlockInfo_t* list = (BlockInfo_t*)(second->data);
 		DataBlock* src = reg_slab_manager_->GetBlock(list[block_id]);
 		if (size + relative_off > src->last_bit) {
-			cout << "size" << size << endl;
-			cout << size << endl;
-			cout << relative_off << endl << src->last_bit << endl;
+			//cout << "size" << size << endl;
+			//cout << size << endl;
+			//cout << relative_off << endl << src->last_bit << endl;
 			size = src->last_bit - relative_off;
-			cout << size << endl;
+			//cout << size << endl;
 			
 		}
 		memcpy(ptr, src->data, size);
@@ -188,11 +188,11 @@ int InodeManager::ReadBlock_impl(int inode_id, int block_id, void* ptr, int rela
 	BlockInfo_t* second_list = (BlockInfo_t*)(second->data);
 	DataBlock* first = reg_slab_manager_->GetBlock(second_list[block_id % (BLOCKSIZE / sizeof(BlockInfo_t))]);
 	if (size + relative_off > first->last_bit) {
-		cout << "size" << size << endl;
-		cout << size << endl;
-		cout << relative_off << endl << first->last_bit << endl;
+		//cout << "size" << size << endl;
+		//cout << size << endl;
+		//cout << relative_off << endl << first->last_bit << endl;
 		size = first->last_bit - relative_off;
-		cout << size << endl;
+		//cout << size << endl;
 		
 	}
 	memcpy(ptr, first->data, size);

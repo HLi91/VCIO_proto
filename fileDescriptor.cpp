@@ -59,9 +59,9 @@ int FileDescriptorManager::GetFileDescriptor(int inode_index) {
 }
 int FileDescriptorManager::ReleaseFileDescriptor(int fd) {
 	FileDescriptor* file_descriptor = in_use_[fd];
-	file_descriptor->mut.lock();
+	//file_descriptor->mut.lock();
 	Cache2FileLocked(file_descriptor);
-	file_descriptor->mut.unlock();
+	//file_descriptor->mut.unlock();
 	int inode_id = in_use_[fd]->file_inode_;
 	inode_manager_->Close(inode_id);
 
@@ -83,15 +83,15 @@ int FileDescriptorManager::ReleaseFileDescriptor(int fd) {
 
 int FileDescriptorManager::CacheRead(void * ptr, size_t size, size_t count, int fd) {
 	FileDescriptor* file_descriptor = in_use_[fd];
-	file_descriptor->mut.lock();
+	//file_descriptor->mut.lock();
 	if (inode_manager_->file_size(file_descriptor->file_inode_) <= file_descriptor->file_offset) {
-		file_descriptor->mut.unlock();
+		//file_descriptor->mut.unlock();
 		return 0;
 	}
 	if ((size*count + file_descriptor->file_offset - 1) / BLOCKSIZE != (file_descriptor->file_offset) / BLOCKSIZE) {	//todo: size*count - 1
 		//cross block boundry
 		int ret = DirectReadLocked(ptr, size, count, file_descriptor);
-		file_descriptor->mut.unlock();
+		//file_descriptor->mut.unlock();
 		return ret;
 	}
 
@@ -99,7 +99,7 @@ int FileDescriptorManager::CacheRead(void * ptr, size_t size, size_t count, int 
 		//no cache
 		file_descriptor->block_id_logical = (file_descriptor->file_offset) / BLOCKSIZE;
 		if (CacheBlockLocked(file_descriptor) == -1) {
-			file_descriptor->mut.unlock();
+			//file_descriptor->mut.unlock();
 			return -1;
 		}
 	}
@@ -117,12 +117,12 @@ int FileDescriptorManager::CacheRead(void * ptr, size_t size, size_t count, int 
 		file_descriptor->buff_cur_position_ = 0;
 		file_descriptor->block_id_logical = -1;
 	}
-	file_descriptor->mut.unlock();
+	//file_descriptor->mut.unlock();
 	return read_size;
 }
 int FileDescriptorManager::CacheWrite(const void * ptr, size_t size, size_t count, int fd) {
 	FileDescriptor* file_descriptor = in_use_[fd];
-	file_descriptor->mut.lock();
+	//file_descriptor->mut.lock();
 	
 	if (file_descriptor->block_id_logical == -1) {
 		file_descriptor->block_id_logical = file_descriptor->file_offset/BLOCKSIZE;
@@ -139,7 +139,7 @@ int FileDescriptorManager::CacheWrite(const void * ptr, size_t size, size_t coun
 	}
 	else {
 		if (Cache2FileLocked(file_descriptor) == -1) {
-			file_descriptor->mut.unlock();
+			//file_descriptor->mut.unlock();
 			return -1;
 		}
 		int write_size = BLOCKSIZE - file_descriptor->buff_cur_position_;
@@ -158,23 +158,25 @@ int FileDescriptorManager::CacheWrite(const void * ptr, size_t size, size_t coun
 	}
 
 
-	file_descriptor->mut.unlock();
+	//file_descriptor->mut.unlock();
 	return size*count;
 }
 
 int FileDescriptorManager::DirectRead(void * ptr, size_t size, size_t count, int fd) {
 	FileDescriptor* file_descriptor = in_use_[fd];
-	file_descriptor->mut.lock();
+	//file_descriptor->mut.lock();
 	int ret = DirectReadLocked(ptr, size, count, file_descriptor);
-	file_descriptor->mut.unlock();
+	//file_descriptor->mut.unlock();
 	return ret;
 }
 int FileDescriptorManager::DirectWrite(const void * ptr, size_t size, size_t count, int fd) {
 	FileDescriptor* file_descriptor = in_use_[fd];
-	file_descriptor->mut.lock();
+	//file_descriptor->mut.lock();
 	Cache2FileLocked(file_descriptor);
 	int ret = inode_manager_->Write(file_descriptor->file_inode_, file_descriptor->file_offset, size*count, ptr);
-	file_descriptor->mut.unlock();
+	file_descriptor->file_offset += ret;
+	
+	//file_descriptor->mut.unlock();
 	return ret;
 }
 
@@ -187,16 +189,16 @@ int FileDescriptorManager::Seek(int fd, long int offset, int origin) {
 	}
 
 	FileDescriptor* file_descriptor = in_use_[fd];
-	file_descriptor->mut.lock();
+	//file_descriptor->mut.lock();
 	if (inode_manager_->file_size(file_descriptor->file_inode_) < offset) {
-		file_descriptor->mut.unlock();
+		//file_descriptor->mut.unlock();
 		return -1;
 	}
 	if (file_descriptor->dirty_) {
 		Cache2FileLocked(file_descriptor);
 		file_descriptor->file_offset = offset;
 		file_descriptor->block_id_logical = -1;
-		file_descriptor->mut.unlock();
+		//file_descriptor->mut.unlock();
 		return 0;
 		//I am not expecting a seek function call when doing write
 	}
@@ -204,12 +206,12 @@ int FileDescriptorManager::Seek(int fd, long int offset, int origin) {
 		file_descriptor->buff_cur_position_ += offset - file_descriptor->file_offset;
 		file_descriptor->file_offset = offset;
 
-		file_descriptor->mut.unlock();
+		//file_descriptor->mut.unlock();
 		return 0;
 	}
 	file_descriptor->file_offset = offset;
 	file_descriptor->block_id_logical = -1;
-	file_descriptor->mut.unlock();
+	//file_descriptor->mut.unlock();
 	return 0;
 
 
