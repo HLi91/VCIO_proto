@@ -104,9 +104,18 @@ int FileDescriptorManager::CacheRead(void * ptr, size_t size, size_t count, int 
 		}
 	}
 
-	int read_size = file_descriptor->buff_end_position_ - file_descriptor->buff_cur_position_;
+	register int read_size = file_descriptor->buff_end_position_ - file_descriptor->buff_cur_position_;
 	read_size = read_size > size*count ? size*count : read_size;
-	memcpy(ptr, file_descriptor->buff_ + file_descriptor->buff_cur_position_, read_size);
+	//if (read_size > 20 )
+		memcpy(ptr, file_descriptor->buff_ + file_descriptor->buff_cur_position_, read_size);
+	/*else {
+		register char * p = (char *)ptr;
+		register size_t i;
+		register char * src_ptr = file_descriptor->buff_ + file_descriptor->buff_cur_position_;
+		for (i = 0; i < read_size; ++i) {
+			p[i] = src_ptr[i];
+		}
+	}*/
 	file_descriptor->buff_cur_position_ += read_size;
 	file_descriptor->file_offset += read_size;
 	if (file_descriptor->buff_cur_position_ >= file_descriptor->buff_end_position_) {

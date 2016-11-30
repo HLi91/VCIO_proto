@@ -1,16 +1,18 @@
 #include "cio.h"
 #include <chrono>
+#include <stdlib.h>
 
 
 int main(int argc, char *argv[]){
-	
+	cout << system("rm -f /dev/shm/cio*") << endl;		//to get rid of all the mess since I didnt implement destructor
+	cout << "after system" << endl;
 	VCIO * cio = new VCIO();
 	cio->init("/cio", 1); 
 	char buff[1024*1024];
 	memset(buff, 0, 1024*1024);
 	int rounds;
 	int repeat = 10;
-	int buff_size = 512;
+	int buff_size = 16;
 	//cin >> buff_size;
 	rounds = 1024 * 1024 * 1024 / buff_size;
 	cout << buff_size << " btyes write " << rounds << " times totally 1G" << endl;
@@ -60,7 +62,7 @@ int main(int argc, char *argv[]){
 
 	}
 
-	return 0;
+	
 	cout << "tmpfs write" << endl;
 
 	for (int j = 0; j < repeat; j++) {
