@@ -1,10 +1,8 @@
 #include "cio.h"
-#include <chrono>
-#include <stdlib.h>
+#include <gtest/gtest.h>
 
-
-int main(int argc, char *argv[]){
-	cout << system("rm -f /dev/shm/cio*") << endl;		//to get rid of all the mess since I didnt implement destructor
+TEST (basic, test1) {
+    cout << system("rm -f /dev/shm/cio*") << endl;		//to get rid of all the mess since I didnt implement destructor
 	cout << "after system" << endl;
 	VCIO * cio = new VCIO();
 	cio->init("/cio", 1); 
@@ -12,7 +10,7 @@ int main(int argc, char *argv[]){
 	memset(buff, 0, 1024*1024);
 	int rounds;
 	int repeat = 10;
-	int buff_size = 16;
+	int buff_size = 512;
 	//cin >> buff_size;
 	rounds = 1024 * 1024 * 1024 / buff_size;
 	cout << buff_size << " btyes write " << rounds << " times totally 1G" << endl;
@@ -104,7 +102,7 @@ int main(int argc, char *argv[]){
 
 	}
 
-	
+	return;
 
 	cout << "ssd write" << endl;
 	for (int j = 0; j < repeat; j++) {
@@ -143,4 +141,9 @@ int main(int argc, char *argv[]){
 
 
 	}
+}
+
+int main(int argc, char **argv) {
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
